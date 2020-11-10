@@ -1,7 +1,10 @@
 package ratelimit
 
-import "time"
+import (
+	"time"
+)
 
+// It mixes by header and by host on the same structure
 type RequestCountTracker struct {
 	requestCount map[string]int64 // If 9,223,372,036,854,775,807 requests isn't enough...
 	startTime    time.Time
@@ -17,12 +20,12 @@ func newRequestCountTracker(windowLength time.Duration) *RequestCountTracker {
 	}
 }
 
-// addRequestForHost adds to the request counter for specified host name
-func (rct *RequestCountTracker) addRequestForHost(hostName string) {
-	rct.requestCount[hostName] += 1
+// addRequestFor adds to the request counter for specified key
+func (rct *RequestCountTracker) addRequestFor(key string) {
+	rct.requestCount[key] += 1
 }
 
-// getRequestCounterForHost gets the request count for a given host name
-func (rct RequestCountTracker) getRequestCountForHost(hostName string) (requestCount int64) {
-	return rct.requestCount[hostName]
+// getRequestCounterForHost gets the request count for a given key
+func (rct RequestCountTracker) getRequestCountFor(key string) (requestCount int64) {
+	return rct.requestCount[key]
 }
