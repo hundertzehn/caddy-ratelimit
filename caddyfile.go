@@ -24,19 +24,12 @@ import (
 
 func parseRateLimit(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
 	var rl RateLimit
-	//err := m.UnmarshalCaddyfile(h.Dispenser)
 	err := rl.UnmarshalCaddyfile(h.Dispenser)
 	return rl, err
 }
 
 func (rl *RateLimit) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
-	//rl.ByHeader = "Connection"
-	//rl.MaxRequests = 11
-	//rl.WindowLength= 60
-	//return nil
-
 	for d.Next() {
-
 		for d.NextBlock(0) {
 			switch d.Val() {
 			case "by_header":
@@ -60,7 +53,6 @@ func (rl *RateLimit) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.Errf("unrecognized servers option '%s'", d.Val())
 			}
 		}
-
 	}
 	return nil
 }
@@ -71,29 +63,4 @@ func (rl RateLimit) Validate() error {
 		return fmt.Errorf("max_requests and window_length must be positive")
 	}
 	return nil
-}
-
-func parseRateLimitC(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
-	var rl *RateLimit
-
-	for h.Next() {
-
-		for h.NextBlock(0) {
-			switch h.Val() {
-			case "by_header":
-				h.NextArg()
-				rl.ByHeader = h.Val()
-			case "max_requests":
-				h.NextArg()
-				//rl.MaxRequestsString = h.Val()
-			case "window_length":
-				h.NextArg()
-				//rl.WindowLength = h.Val()
-			default:
-				return nil, h.Errf("unrecognized servers option '%s'", h.Val())
-			}
-		}
-
-	}
-	return rl, nil
 }

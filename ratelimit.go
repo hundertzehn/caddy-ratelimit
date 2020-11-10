@@ -38,10 +38,17 @@ type RateLimit struct {
 	previousWindow *RequestCountTracker
 }
 
-func (rl *RateLimit) Provision(ctx caddy.Context) error {
+func (rl *RateLimit) Provision(_ctx caddy.Context) error {
 	if nil == rl.currentWindow {
 		rl.currentWindow = newRequestCountTracker(rl.windowDuration())
 		rl.previousWindow = &RequestCountTracker{}
+
+		go func() { // automatic shuffling of request count tracking windows
+			for {
+				time.Sleep(rl.currentWindow.endTime.Sub(time.Now()))
+				rl.refreshWindows()
+			}
+		}()
 	}
 	return nil
 }
@@ -71,7 +78,6 @@ func (rl *RateLimit) refreshWindows() (didRefresh bool) {
 
 		didRefresh = true
 	}
-
 	return
 }
 
@@ -130,7 +136,7 @@ func (rl RateLimit) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	shouldBlock := rl.requestShouldBlock(key)
 
 	if shouldBlock {
-		fmt.Printf("Key %s exceed rate limit.\n", key)
+		fmt.Printf("Key %s exceeds rate limit for path %s.\n", key, r.URL.Path)
 		w.WriteHeader(http.StatusTooManyRequests)
 		if _, err := w.Write(nil); err != nil {
 			return err
@@ -140,8 +146,8 @@ func (rl RateLimit) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 }
 
 var (
-	//_ caddy.Provisioner           = (*RateLimit)(nil)
-	//_ caddy.Validator             = (*RateLimit)(nil)
+	_ caddy.Provisioner           = (*RateLimit)(nil)
+	_ caddy.Validator             = (*RateLimit)(nil)
 	_ caddyhttp.MiddlewareHandler = (*RateLimit)(nil)
 	_ caddyfile.Unmarshaler       = (*RateLimit)(nil)
 )

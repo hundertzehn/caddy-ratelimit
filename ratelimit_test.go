@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"github.com/caddyserver/caddy/v2"
 	"testing"
 	"time"
 )
@@ -8,7 +9,7 @@ import (
 func Test_rateLimitOptions_refreshWindows(t *testing.T) {
 	t.Run("Should refresh", func(t *testing.T) {
 		RateLimit := RateLimit{
-			windowDuration: 15 * time.Minute,
+			WindowLength: 15 * 60,
 			currentWindow: &RequestCountTracker{
 				requestCount: map[string]int64{},
 				startTime:    time.Now().Add(-35 * time.Minute),
@@ -23,7 +24,7 @@ func Test_rateLimitOptions_refreshWindows(t *testing.T) {
 
 	t.Run("Should not refresh", func(t *testing.T) {
 		RateLimit := RateLimit{
-			windowDuration: 1 * time.Minute,
+			WindowLength: 60,
 			currentWindow: &RequestCountTracker{
 				requestCount: map[string]int64{},
 				startTime:    time.Now().Add(-30 * time.Minute),
@@ -45,10 +46,10 @@ func Test_rateLimitOptions_blockingAndRequestCounting(t *testing.T) {
 
 	rl := RateLimit{
 		ByHeader: "",
-		WindowLength: "20M",
-		MaxRequestsString: "200",
+		WindowLength: 20 * 60,
+		MaxRequests: 200,
 	}
-	rl.setupRateLimit()
+	rl.Provision(caddy.Context{})
 
 	rl.currentWindow.requestCount[hostName] = 100
 	rl.currentWindow.startTime = rl.currentWindow.startTime.Add(-10 * time.Minute)
@@ -74,7 +75,7 @@ func Test_rateLimitOptions_blockingAndRequestCounting(t *testing.T) {
 	})
 
 	// test whether blocking works
-	rl.maxRequests = 50
+	rl.MaxRequests = 50
 	t.Run("50-50 split should block with now reduced maxRequest as 77 > 50", func(t *testing.T) {
 		if shouldBlock := rl.requestShouldBlock(hostName); !shouldBlock {
 			t.Errorf("Should have blocked with reduced maxRequests, did not, got %+v", rl)
@@ -88,10 +89,10 @@ func Test_rateLimitOptions_blockingAndRequestCountingByHeader(t *testing.T) {
 
 	rl := RateLimit{
 		ByHeader: "",
-		WindowLength: "20M",
-		MaxRequestsString: "200",
+		WindowLength: 20 * 60,
+		MaxRequests: 200,
 	}
-	rl.setupRateLimit()
+	rl.Provision(caddy.Context{})
 
 	rl.currentWindow.requestCount[header] = 100
 	rl.currentWindow.startTime = rl.currentWindow.startTime.Add(-10 * time.Minute)
@@ -117,7 +118,7 @@ func Test_rateLimitOptions_blockingAndRequestCountingByHeader(t *testing.T) {
 	})
 
 	// test whether blocking works
-	rl.maxRequests = 50
+	rl.MaxRequests = 50
 	t.Run("50-50 split should block with now reduced maxRequest as 77 > 50", func(t *testing.T) {
 		if shouldBlock := rl.requestShouldBlock(header); !shouldBlock {
 			t.Errorf("Should have blocked with reduced maxRequests, did not, got %+v", rl)
@@ -129,10 +130,10 @@ func Test_rateLimitOptions_setupRateLimit(t *testing.T) {
 	t.Run("Should initialise properly", func(t *testing.T) {
 		rl := RateLimit{
 			ByHeader: "",
-			WindowLength: "1H",
-			MaxRequestsString: "200",
+			WindowLength: 60 * 60,
+			MaxRequests: 200,
 		}
-		rl.setupRateLimit()
+		rl.Provision(caddy.Context{})
 
 		hostName := "localhost"
 		if count := rl.currentWindow.getRequestCountFor(hostName); count != 0 {
@@ -148,11 +149,11 @@ func Test_rateLimitOptions_setupRateLimit(t *testing.T) {
 	t.Run("Should shuffle windows after one second", func(t *testing.T) {
 		rl := RateLimit{
 			ByHeader: "",
-			WindowLength: "1H",
-			MaxRequestsString: "1000",
+			WindowLength: 1,
+			MaxRequests: 1000,
 		}
-		rl.setupRateLimit()
-		rl.windowDuration = 1*time.Second
+		rl.Provision(caddy.Context{})
+
 		hostName := "localhost"
 
 		rl.requestShouldBlock(hostName)
