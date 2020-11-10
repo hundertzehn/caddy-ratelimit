@@ -1,4 +1,4 @@
-module ratelimit
+module caddy-ratelimit
 
 go 1.15
 
