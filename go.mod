@@ -1,4 +1,4 @@
-module caddy-ratelimit
+module github.com/hundertzehn/caddy-ratelimit
 
 go 1.15
 
