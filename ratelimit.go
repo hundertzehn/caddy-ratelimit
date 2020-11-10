@@ -1,7 +1,6 @@
 package ratelimit
 
 import (
-	"fmt"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"math"
@@ -136,7 +135,7 @@ func (rl RateLimit) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	shouldBlock := rl.requestShouldBlock(key)
 
 	if shouldBlock {
-		fmt.Printf("Key %s exceeds rate limit for path %s.\n", key, r.URL.Path)
+		//fmt.Printf("Key %s exceeds rate limit for path %s.\n", key, r.URL.Path)
 		w.WriteHeader(http.StatusTooManyRequests)
 		if _, err := w.Write(nil); err != nil {
 			return err
