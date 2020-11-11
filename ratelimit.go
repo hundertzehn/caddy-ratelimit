@@ -137,11 +137,11 @@ func (rl RateLimit) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	if shouldBlock {
 		//fmt.Printf("Key %s exceeds rate limit for path %s.\n", key, r.URL.Path)
 		w.WriteHeader(http.StatusTooManyRequests)
-		if _, err := w.Write(nil); err != nil {
-			return err
-		}
+		_, err := w.Write(nil)
+		return err
+	} else {
+		return next.ServeHTTP(w, r)
 	}
-	return next.ServeHTTP(w, r)
 }
 
 var (
