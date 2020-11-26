@@ -24,11 +24,11 @@ func init() {
 type RateLimit struct {
 	ByHeader string `json:"by_header,omitempty"`
 
-	// window length for request rate checking (>= 1 minute)
-	WindowLength int64 `json:"window_length"`
+	// window length for request rate checking (better >= 2 minutes)
+	WindowLength caddy.Duration `json:"window_length,omitempty"`
 
 	// max request that should be processed per key in a given windowDuration
-	MaxRequests int64 `json:"max_requests"`
+	MaxRequests int64 `json:"max_requests,omitempty"`
 
 	// current window's request count per key
 	currentWindow *RequestCountTracker
@@ -53,7 +53,7 @@ func (rl *RateLimit) Provision(_ctx caddy.Context) error {
 }
 
 func (rl *RateLimit) windowDuration() time.Duration {
-	return time.Duration(rl.WindowLength) * time.Second
+	return time.Duration(rl.WindowLength)
 }
 
 // CaddyModule returns the Caddy module information.
