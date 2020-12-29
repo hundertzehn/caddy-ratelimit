@@ -1,7 +1,6 @@
 package ratelimit
 
 import (
-	"sync"
 	"time"
 )
 
@@ -23,10 +22,7 @@ func newRequestCountTracker(windowLength time.Duration) *RequestCountTracker {
 
 // addRequestFor adds to the request counter for specified key
 func (rct *RequestCountTracker) addRequestFor(key string) {
-	var mutex = &sync.Mutex{}
-	mutex.Lock()
 	rct.requestCount[key]++
-	mutex.Unlock()
 }
 
 // getRequestCounterForHost gets the request count for a given key
