@@ -16,11 +16,12 @@ package ratelimit
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
-	"strconv"
 )
 
 func parseRateLimit(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
@@ -29,6 +30,7 @@ func parseRateLimit(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error)
 	return rl, err
 }
 
+// UnmarshalCaddyfile unmarshals the Caddyfile
 func (rl *RateLimit) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	for d.Next() {
 		for d.NextBlock(0) {
@@ -42,11 +44,11 @@ func (rl *RateLimit) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				if !d.NextArg() {
 					return d.ArgErr()
 				}
-				if num, err := strconv.Atoi(d.Val()); err != nil {
+				num, err := strconv.Atoi(d.Val())
+				if err != nil {
 					return fmt.Errorf("max requests %v could not be parsed as a number", d.Val())
-				} else {
-					rl.MaxRequests = int64(num)
 				}
+				rl.MaxRequests = int64(num)
 			case "window_length":
 				if !d.NextArg() {
 					return d.ArgErr()
@@ -54,9 +56,8 @@ func (rl *RateLimit) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				duration, err := caddy.ParseDuration(d.Val())
 				if err != nil {
 					return fmt.Errorf("window_length %v could not be parsed as a duration", d.Val())
-				} else {
-					rl.WindowLength = caddy.Duration(duration)
 				}
+				rl.WindowLength = caddy.Duration(duration)
 			default:
 				return d.Errf("unrecognized servers option '%s'", d.Val())
 			}

@@ -1,10 +1,11 @@
 package ratelimit
 
 import (
+	"sync"
 	"time"
 )
 
-// It mixes by header and by host on the same structure
+// RequestCountTracker mixes by header and by host on the same structure
 type RequestCountTracker struct {
 	requestCount map[string]int64 // If 9,223,372,036,854,775,807 requests isn't enough...
 	startTime    time.Time
@@ -22,7 +23,10 @@ func newRequestCountTracker(windowLength time.Duration) *RequestCountTracker {
 
 // addRequestFor adds to the request counter for specified key
 func (rct *RequestCountTracker) addRequestFor(key string) {
-	rct.requestCount[key] += 1
+	var mutex = &sync.Mutex{}
+	mutex.Lock()
+	rct.requestCount[key]++
+	mutex.Unlock()
 }
 
 // getRequestCounterForHost gets the request count for a given key

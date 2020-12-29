@@ -1,9 +1,10 @@
 package ratelimit
 
 import (
-	"github.com/caddyserver/caddy/v2"
 	"testing"
 	"time"
+
+	"github.com/caddyserver/caddy/v2"
 )
 
 func Test_rateLimitOptions_refreshWindows(t *testing.T) {
@@ -45,9 +46,9 @@ func Test_rateLimitOptions_blockingAndRequestCounting(t *testing.T) {
 	hostName := "10.0.0.127"
 
 	rl := RateLimit{
-		ByHeader: "",
-		WindowLength: 20 * 60,
-		MaxRequests: 200,
+		ByHeader:     "",
+		WindowLength: caddy.Duration(20 * time.Minute),
+		MaxRequests:  200,
 	}
 	rl.Provision(caddy.Context{})
 
@@ -88,9 +89,9 @@ func Test_rateLimitOptions_blockingAndRequestCountingByHeader(t *testing.T) {
 	header := "Authorization"
 
 	rl := RateLimit{
-		ByHeader: "",
-		WindowLength: 20 * 60,
-		MaxRequests: 200,
+		ByHeader:     "",
+		WindowLength: caddy.Duration(20 * time.Minute),
+		MaxRequests:  200,
 	}
 	rl.Provision(caddy.Context{})
 
@@ -129,9 +130,9 @@ func Test_rateLimitOptions_blockingAndRequestCountingByHeader(t *testing.T) {
 func Test_rateLimitOptions_setupRateLimit(t *testing.T) {
 	t.Run("Should initialise properly", func(t *testing.T) {
 		rl := RateLimit{
-			ByHeader: "",
-			WindowLength: 60 * 60,
-			MaxRequests: 200,
+			ByHeader:     "",
+			WindowLength: caddy.Duration(60 * time.Minute),
+			MaxRequests:  200,
 		}
 		rl.Provision(caddy.Context{})
 
@@ -148,9 +149,9 @@ func Test_rateLimitOptions_setupRateLimit(t *testing.T) {
 	// value of window kept very low for testing, minimum value should be 5 minutes
 	t.Run("Should shuffle windows after one second", func(t *testing.T) {
 		rl := RateLimit{
-			ByHeader: "",
-			WindowLength: 1,
-			MaxRequests: 1000,
+			ByHeader:     "",
+			WindowLength: caddy.Duration(1 * time.Second),
+			MaxRequests:  1000,
 		}
 		rl.Provision(caddy.Context{})
 

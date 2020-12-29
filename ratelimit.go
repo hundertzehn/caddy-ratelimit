@@ -1,12 +1,13 @@
 package ratelimit
 
 import (
-	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
-	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"math"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
+	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 
@@ -19,7 +20,7 @@ func init() {
 	httpcaddyfile.RegisterHandlerDirective("rate_limit", parseRateLimit)
 }
 
-// rateLimitOptions stores options detailing how rate limiting should be applied,
+// RateLimit stores options detailing how rate limiting should be applied,
 // as well as the current and previous window's key:requestCount mapping
 type RateLimit struct {
 	ByHeader string `json:"by_header,omitempty"`
@@ -37,6 +38,7 @@ type RateLimit struct {
 	previousWindow *RequestCountTracker
 }
 
+// Provision implement caddy module provisioner
 func (rl *RateLimit) Provision(_ctx caddy.Context) error {
 	if nil == rl.currentWindow {
 		rl.currentWindow = newRequestCountTracker(rl.windowDuration())
@@ -139,9 +141,8 @@ func (rl RateLimit) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		w.WriteHeader(http.StatusTooManyRequests)
 		_, err := w.Write(nil)
 		return err
-	} else {
-		return next.ServeHTTP(w, r)
 	}
+	return next.ServeHTTP(w, r)
 }
 
 var (
