@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"sync"
 	"testing"
 	"time"
 )
@@ -13,6 +14,7 @@ func Test_RequestCountTracker_getRequestCountFor(t *testing.T) {
 		},
 		startTime: time.Time{},
 		endTime:   time.Time{},
+		_mutex:    &sync.RWMutex{},
 	}
 
 	t.Run("Should append to existing host's counter", func(t *testing.T) {

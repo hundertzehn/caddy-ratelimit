@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ func Test_rateLimitOptions_refreshWindows(t *testing.T) {
 				requestCount: map[string]int64{},
 				startTime:    time.Now().Add(-35 * time.Minute),
 				endTime:      time.Now().Add(-20 * time.Minute),
+				_mutex:       &sync.RWMutex{},
 			},
 		}
 
@@ -30,6 +32,7 @@ func Test_rateLimitOptions_refreshWindows(t *testing.T) {
 				requestCount: map[string]int64{},
 				startTime:    time.Now().Add(-30 * time.Minute),
 				endTime:      time.Now().Add(30 * time.Minute),
+				_mutex:       &sync.RWMutex{},
 			},
 		}
 
@@ -59,6 +62,7 @@ func Test_rateLimitOptions_blockingAndRequestCounting(t *testing.T) {
 	// start/end time doesn't really matter for previous window
 	rl.previousWindow = &RequestCountTracker{
 		requestCount: map[string]int64{hostName: 50},
+		_mutex:       &sync.RWMutex{},
 	}
 
 	t.Run("50-50 split should interpolate to 75 requests", func(t *testing.T) {
@@ -102,6 +106,7 @@ func Test_rateLimitOptions_blockingAndRequestCountingByHeader(t *testing.T) {
 	// start/end time doesn't really matter for previous window
 	rl.previousWindow = &RequestCountTracker{
 		requestCount: map[string]int64{header: 50},
+		_mutex:       &sync.RWMutex{},
 	}
 
 	t.Run("50-50 split should interpolate to 75 requests", func(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -37,16 +36,13 @@ type RateLimit struct {
 
 	// previous window's request count per key
 	previousWindow *RequestCountTracker
-
-	mutex *sync.Mutex
 }
 
 // Provision implement caddy module provisioner
 func (rl *RateLimit) Provision(_ctx caddy.Context) error {
 	if nil == rl.currentWindow {
 		rl.currentWindow = newRequestCountTracker(rl.windowDuration())
-		rl.previousWindow = &RequestCountTracker{}
-		rl.mutex = &sync.Mutex{}
+		rl.previousWindow = newPreviousRequestCountTracker(rl.windowDuration())
 
 		go func() { // automatic shuffling of request count tracking windows
 			for {
@@ -90,9 +86,7 @@ func (rl *RateLimit) refreshWindows() (didRefresh bool) {
 // and increments the request counter for the key first
 // will block if current request would push the key over the blocking threshold
 func (rl *RateLimit) requestShouldBlock(key string) (shouldBlock bool) {
-	rl.mutex.Lock()
-	rl.currentWindow.addRequestFor(key) // increment request counter for the key
-	rl.mutex.Unlock()
+	rl.currentWindow.addRequestFor(key)                         // increment request counter for the key
 	return rl.getInterpolatedRequestCount(key) > rl.MaxRequests // check if they now are above the request limit
 }
 
